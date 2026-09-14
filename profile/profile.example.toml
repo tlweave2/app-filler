@@ -172,7 +172,9 @@ proficiency = ""                # "Native" / "Professional" / "Conversational"
 # absolute paths to wherever you actually keep them.
 # ---------------------------------------------------------------------------
 [documents]
-resume_default    = "resume/variants/resume-default.md"
+# Generate the default with:
+#   ./af resume --tags default --out resume/variants/resume-default.html
+resume_default    = "resume/variants/resume-default.html"
 cover_letter_base = "resume/cover-letter-base.md"
 transcript        = ""
 portfolio_pdf     = ""

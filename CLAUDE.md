@@ -36,7 +36,7 @@ applications/log.csv        application tracker
 ./af sheet                  cheat sheet while filling a form
 ./af get email --copy       one value to the clipboard
 ./af answer "why us"        reusable answer for a free-text box
-./af resume --tags backend --out resume/variants/x.md
+./af resume --tags backend --out resume/variants/x.html   # .md or .html
 ./af export --format flat   JSON for autofill extensions
 ./af log add|list|status|due|stats
 ```
@@ -46,6 +46,9 @@ applications/log.csv        application tracker
 - Dates are `YYYY-MM` in profile and resume files.
 - A blank string means "not filled in yet" — `./af doctor` reports these.
 - Resume bullets carry `tags`; a variant is a tag selection, never a rewrite.
+- `af resume` renders Markdown or print-ready HTML (format inferred from the
+  `--out` extension). HTML is the uploadable path: open it, print to PDF. Keep
+  the layout single-column and text-only — ATS parsers mangle anything else.
 - `profile.toml` and `resume/base.toml` must agree on company names, titles and
   dates. Background checks catch discrepancies; `./af doctor` cross-checks them.
 

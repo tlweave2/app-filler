@@ -385,13 +385,15 @@ STOPWORDS = {
 }
 
 
-def tokenize(text: str) -> set[str]:
-    words = re.findall(r"[a-z0-9']+", text.lower())
-    return {w for w in words if w not in STOPWORDS and len(w) > 1}
+def tokenize(text: str, keep_stopwords: bool = False) -> set[str]:
+    words = {w for w in re.findall(r"[a-z0-9']+", text.lower()) if len(w) > 1}
+    if keep_stopwords:
+        return words
+    return {w for w in words if w not in STOPWORDS}
 
 
-def score(query: set[str], candidate: str) -> float:
-    cand = tokenize(candidate)
+def score(query: set[str], candidate: str, loose: bool = False) -> float:
+    cand = tokenize(candidate, keep_stopwords=loose)
     if not cand or not query:
         return 0.0
     overlap = len(query & cand)
@@ -414,10 +416,14 @@ def cmd_answer(args) -> None:
         return
 
     qtokens = tokenize(query)
+    loose = not qtokens
+    if loose:
+        qtokens = tokenize(query, keep_stopwords=True)
+
     ranked = []
     for entry in bank:
         phrases = list(entry.get("match", [])) + [entry.get("label", ""), entry.get("id", "")]
-        best = max((score(qtokens, p) for p in phrases if p), default=0.0)
+        best = max((score(qtokens, p, loose) for p in phrases if p), default=0.0)
         ranked.append((best, entry))
     ranked.sort(key=lambda pair: pair[0], reverse=True)
 
@@ -468,8 +474,8 @@ def wants(item_tags, selected: set[str]) -> bool:
     return bool(tags & selected)
 
 
-def cmd_resume(args) -> None:
-    base = load(RESUME_BASE)
+def select_resume(base: dict, args) -> dict:
+    """Pick the content for one variant. Rendering is a separate step."""
     selected = {t.strip().lower() for t in args.tags.split(",") if t.strip()}
     if not selected:
         selected = {"default"}
@@ -490,112 +496,263 @@ def cmd_resume(args) -> None:
     else:
         chosen = next((s for s in summaries if wants(s.get("tags"), selected)), None)
 
-    out: list[str] = []
-    out.append(f"# {header['name']}")
     headline = header.get("headline", "")
     if chosen and not is_blank(chosen.get("headline")):
         headline = chosen["headline"]
-    if not is_blank(headline):
-        out.append(f"**{headline}**")
+
     contact = [
-        header.get("location", ""),
-        header.get("email", ""),
-        header.get("phone", ""),
-        header.get("linkedin", ""),
-        header.get("github", ""),
-        header.get("portfolio", ""),
+        c for c in (
+            header.get("location", ""), header.get("email", ""), header.get("phone", ""),
+            header.get("linkedin", ""), header.get("github", ""), header.get("portfolio", ""),
+        ) if not is_blank(c)
     ]
-    contact = [c for c in contact if not is_blank(c)]
-    if contact:
-        out.append(" · ".join(contact))
+
+    jobs = []
+    for job in base.get("jobs", []):
+        if is_blank(job.get("company")) or not wants(job.get("tags"), selected):
+            continue
+        bullets = [
+            b["text"].strip() for b in job.get("bullets", [])
+            if not is_blank(b.get("text")) and wants(b.get("tags"), selected)
+        ]
+        if args.max_bullets:
+            bullets = bullets[: args.max_bullets]
+        meta = [m for m in (job.get("location", ""),
+                            f"{job.get('start', '')} – {job.get('end') or 'Present'}")
+                if not is_blank(m)]
+        jobs.append({"title": job.get("title", ""), "company": job.get("company", ""),
+                     "meta": meta, "bullets": bullets})
+
+    projects = []
+    for proj in base.get("projects", []):
+        if is_blank(proj.get("name")) or not wants(proj.get("tags"), selected):
+            continue
+        projects.append({
+            "name": proj["name"], "link": proj.get("link", ""),
+            "description": proj.get("description", "").strip(),
+            "bullets": [b["text"].strip() for b in proj.get("bullets", [])
+                        if not is_blank(b.get("text")) and wants(b.get("tags"), selected)],
+        })
+
+    edus = []
+    for edu in base.get("education", []):
+        if is_blank(edu.get("school")) or not wants(edu.get("tags"), selected):
+            continue
+        extras = [e for e in (edu.get("location", ""), edu.get("end", "")) if not is_blank(e)]
+        if not is_blank(edu.get("gpa")):
+            extras.append(f"GPA {edu['gpa']}")
+        if not is_blank(edu.get("honors")):
+            extras.append(str(edu["honors"]))
+        edus.append({"school": edu["school"], "degree": edu.get("degree", ""),
+                     "field": edu.get("field", ""), "meta": extras})
+
+    groups = [
+        {"name": g.get("name", "Skills"), "items": g["items"]}
+        for g in base.get("skill_groups", [])
+        if g.get("items") and wants(g.get("tags"), selected)
+    ]
+
+    return {"name": header["name"], "headline": headline, "contact": contact,
+            "summary": chosen["text"].strip() if chosen else "", "jobs": jobs,
+            "projects": projects, "education": edus, "skills": groups,
+            "tags": sorted(selected)}
+
+
+def render_markdown(r: dict) -> str:
+    out = [f"# {r['name']}"]
+    if r["headline"]:
+        out.append(f"**{r['headline']}**")
+    if r["contact"]:
+        out.append(" · ".join(r["contact"]))
     out.append("")
 
-    if chosen:
-        out.append("## Summary")
-        out.append("")
-        out.append(chosen["text"].strip())
-        out.append("")
+    if r["summary"]:
+        out += ["## Summary", "", r["summary"], ""]
 
-    jobs = [j for j in base.get("jobs", []) if not is_blank(j.get("company")) and wants(j.get("tags"), selected)]
-    if jobs:
-        out.append("## Experience")
-        out.append("")
-        for job in jobs:
-            end = job.get("end") or "Present"
-            out.append(f"### {job.get('title', '')} — {job.get('company', '')}")
-            meta = [m for m in (job.get("location", ""), f"{job.get('start', '')} – {end}") if not is_blank(m)]
-            out.append(f"*{' · '.join(meta)}*")
+    if r["jobs"]:
+        out += ["## Experience", ""]
+        for job in r["jobs"]:
+            out.append(f"### {job['title']} — {job['company']}")
+            out.append(f"*{' · '.join(job['meta'])}*")
             out.append("")
-            bullets = [
-                b for b in job.get("bullets", [])
-                if not is_blank(b.get("text")) and wants(b.get("tags"), selected)
-            ]
-            if args.max_bullets:
-                bullets = bullets[: args.max_bullets]
-            for bullet in bullets:
-                out.append(f"- {bullet['text'].strip()}")
+            out += [f"- {b}" for b in job["bullets"]]
             out.append("")
 
-    projects = [p for p in base.get("projects", []) if not is_blank(p.get("name")) and wants(p.get("tags"), selected)]
-    if projects:
-        out.append("## Projects")
-        out.append("")
-        for proj in projects:
-            title = f"### {proj['name']}"
-            if not is_blank(proj.get("link")):
-                title += f" — {proj['link']}"
-            out.append(title)
-            if not is_blank(proj.get("description")):
-                out.append(proj["description"].strip())
+    if r["projects"]:
+        out += ["## Projects", ""]
+        for proj in r["projects"]:
+            out.append(f"### {proj['name']}" + (f" — {proj['link']}" if proj["link"] else ""))
+            if proj["description"]:
+                out.append(proj["description"])
             out.append("")
-            for bullet in proj.get("bullets", []):
-                if not is_blank(bullet.get("text")) and wants(bullet.get("tags"), selected):
-                    out.append(f"- {bullet['text'].strip()}")
+            out += [f"- {b}" for b in proj["bullets"]]
             out.append("")
 
-    edus = [e for e in base.get("education", []) if not is_blank(e.get("school")) and wants(e.get("tags"), selected)]
-    if edus:
-        out.append("## Education")
-        out.append("")
-        for edu in edus:
-            line = f"**{edu.get('school')}** — {edu.get('degree', '')}"
-            if not is_blank(edu.get("field")):
+    if r["education"]:
+        out += ["## Education", ""]
+        for edu in r["education"]:
+            line = f"**{edu['school']}** — {edu['degree']}"
+            if edu["field"]:
                 line += f", {edu['field']}"
             out.append(line)
-            meta = [m for m in (edu.get("location", ""), edu.get("end", "")) if not is_blank(m)]
-            extras = []
-            if not is_blank(edu.get("gpa")):
-                extras.append(f"GPA {edu['gpa']}")
-            if not is_blank(edu.get("honors")):
-                extras.append(str(edu["honors"]))
-            if meta or extras:
-                out.append(f"*{' · '.join(meta + extras)}*")
+            if edu["meta"]:
+                out.append(f"*{' · '.join(edu['meta'])}*")
             out.append("")
 
-    groups = [g for g in base.get("skill_groups", []) if g.get("items") and wants(g.get("tags"), selected)]
-    if groups:
-        out.append("## Skills")
-        out.append("")
-        for group in groups:
-            out.append(f"**{group.get('name', 'Skills')}:** {', '.join(group['items'])}")
+    if r["skills"]:
+        out += ["## Skills", ""]
+        for group in r["skills"]:
+            out.append(f"**{group['name']}:** {', '.join(group['items'])}")
         out.append("")
 
-    text = "\n".join(out).rstrip() + "\n"
-    text = re.sub(r"\n{3,}", "\n\n", text)
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(out).rstrip()) + "\n"
 
-    if args.out:
-        dest = Path(args.out)
-        if not dest.is_absolute():
-            dest = ROOT / dest
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(text, encoding="utf-8")
-        words = len(text.split())
-        print(f"wrote {dest.relative_to(ROOT) if dest.is_relative_to(ROOT) else dest}")
-        print(dim(f"  tags: {', '.join(sorted(selected))} · ~{words} words"))
-        if words > 600:
-            print(yellow("  long for one page — consider --max-bullets 4"))
-    else:
+
+# Deliberately plain: single column, real text, standard section names, no
+# tables or text boxes. Multi-column "designer" resumes are what ATS parsers
+# mangle — the layout that survives parsing is the boring one.
+RESUME_CSS = """
+  @page { size: letter; margin: 0.5in; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 10.5pt; line-height: 1.42; color: #16191d;
+    max-width: 7.5in; margin: 0 auto; padding: 0.5in 0.55in;
+    -webkit-print-color-adjust: exact;
+  }
+  h1 { font-size: 20pt; margin: 0 0 2px; letter-spacing: -0.3px; }
+  .headline { font-size: 11pt; font-weight: 600; color: #34383f; margin-bottom: 4px; }
+  .contact { font-size: 9.5pt; color: #4a4f57; margin-bottom: 14px; }
+  .contact span:not(:last-child)::after { content: " · "; color: #a6abb3; }
+  h2 {
+    font-size: 9.5pt; text-transform: uppercase; letter-spacing: 1.1px;
+    color: #16191d; border-bottom: 1.5px solid #16191d;
+    padding-bottom: 3px; margin: 16px 0 9px;
+  }
+  .entry { margin-bottom: 11px; page-break-inside: avoid; }
+  .entry-head {
+    display: flex; justify-content: space-between;
+    align-items: baseline; gap: 12px;
+  }
+  .role { font-size: 10.5pt; font-weight: 700; }
+  .meta { font-size: 9pt; color: #5b616a; white-space: nowrap; }
+  ul { margin: 5px 0 0; padding-left: 17px; }
+  li { margin-bottom: 3px; }
+  .summary { margin-bottom: 2px; }
+  .skills-row { margin-bottom: 4px; }
+  .skills-row b { font-weight: 700; }
+  a { color: inherit; text-decoration: none; }
+  .print-hint {
+    background: #fff8e1; border: 1px solid #f0d58c; border-radius: 6px;
+    padding: 10px 14px; font-size: 9.5pt; color: #6b5514; margin-bottom: 20px;
+  }
+  @media print { .print-hint { display: none; } body { padding: 0; } }
+"""
+
+
+def esc(text: str) -> str:
+    return (str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+
+def render_html(r: dict) -> str:
+    parts = [
+        "<!DOCTYPE html>", '<html lang="en">', "<head>",
+        '<meta charset="utf-8">',
+        f"<title>{esc(r['name'])} — Resume</title>",
+        f"<style>{RESUME_CSS}</style>", "</head>", "<body>",
+        '<div class="print-hint">Press <b>Ctrl/Cmd + P</b> and choose '
+        '<b>Save as PDF</b>. This box will not appear in the PDF.</div>',
+        f"<h1>{esc(r['name'])}</h1>",
+    ]
+    if r["headline"]:
+        parts.append(f'<div class="headline">{esc(r["headline"])}</div>')
+    if r["contact"]:
+        spans = "".join(f"<span>{esc(c)}</span>" for c in r["contact"])
+        parts.append(f'<div class="contact">{spans}</div>')
+
+    if r["summary"]:
+        parts.append("<h2>Summary</h2>")
+        parts.append(f'<div class="summary">{esc(r["summary"])}</div>')
+
+    if r["jobs"]:
+        parts.append("<h2>Experience</h2>")
+        for job in r["jobs"]:
+            role = " — ".join(x for x in (esc(job["title"]), esc(job["company"])) if x)
+            parts.append('<div class="entry"><div class="entry-head">'
+                         f'<span class="role">{role}</span>'
+                         f'<span class="meta">{esc(" · ".join(job["meta"]))}</span></div>')
+            if job["bullets"]:
+                items = "".join(f"<li>{esc(b)}</li>" for b in job["bullets"])
+                parts.append(f"<ul>{items}</ul>")
+            parts.append("</div>")
+
+    if r["projects"]:
+        parts.append("<h2>Projects</h2>")
+        for proj in r["projects"]:
+            parts.append('<div class="entry"><div class="entry-head">'
+                         f'<span class="role">{esc(proj["name"])}</span>'
+                         f'<span class="meta">{esc(proj["link"])}</span></div>')
+            if proj["description"]:
+                parts.append(f'<div class="summary">{esc(proj["description"])}</div>')
+            if proj["bullets"]:
+                items = "".join(f"<li>{esc(b)}</li>" for b in proj["bullets"])
+                parts.append(f"<ul>{items}</ul>")
+            parts.append("</div>")
+
+    if r["education"]:
+        parts.append("<h2>Education</h2>")
+        for edu in r["education"]:
+            degree = edu["degree"] + (f", {edu['field']}" if edu["field"] else "")
+            parts.append('<div class="entry"><div class="entry-head">'
+                         f'<span class="role">{esc(edu["school"])}</span>'
+                         f'<span class="meta">{esc(" · ".join(edu["meta"]))}</span></div>')
+            if degree.strip(", "):
+                parts.append(f'<div class="summary">{esc(degree)}</div>')
+            parts.append("</div>")
+
+    if r["skills"]:
+        parts.append("<h2>Skills</h2>")
+        for group in r["skills"]:
+            parts.append(f'<div class="skills-row"><b>{esc(group["name"])}:</b> '
+                         f'{esc(", ".join(group["items"]))}</div>')
+
+    parts += ["</body>", "</html>"]
+    return "\n".join(parts) + "\n"
+
+
+def cmd_resume(args) -> None:
+    resume = select_resume(load(RESUME_BASE), args)
+    explicit = args.format is not None
+    fmt_name = args.format or "md"
+    out_path = args.out
+
+    # Infer format from the output extension when it's unambiguous.
+    if out_path and not explicit:
+        if out_path.endswith((".html", ".htm")):
+            fmt_name = "html"
+        elif out_path.endswith(".md"):
+            fmt_name = "md"
+
+    text = render_html(resume) if fmt_name == "html" else render_markdown(resume)
+
+    if not out_path:
         print(text, end="")
+        return
+
+    dest = Path(out_path)
+    if not dest.is_absolute():
+        dest = ROOT / dest
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(text, encoding="utf-8")
+
+    shown = dest.relative_to(ROOT) if dest.is_relative_to(ROOT) else dest
+    words = len(re.sub(r"<[^>]+>", " ", text).split()) if fmt_name == "html" else len(text.split())
+    print(f"wrote {shown}")
+    print(dim(f"  tags: {', '.join(resume['tags'])} · {fmt_name} · ~{words} words"))
+    if words > 600:
+        print(yellow("  long for one page — consider --max-bullets 4"))
+    if fmt_name == "html":
+        print(dim(f"  open it, then Ctrl/Cmd+P -> Save as PDF"))
 
 
 # ---------------------------------------------------------------------------
@@ -957,11 +1114,13 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""\
 examples:
+  ./af init                                first run — create your files
   ./af doctor                              what's still blank
   ./af sheet                               cheat sheet while filling a form
   ./af get email --copy                    one value onto the clipboard
   ./af answer "why do you want to work here"
   ./af resume --tags backend,python --out resume/variants/backend.md
+  ./af resume --tags backend --out resume/variants/backend.html   (-> print to PDF)
   ./af export --format flat --out build/profile.json
   ./af log add --company Stripe --role "Backend Engineer" --source linkedin
   ./af log due                             who to follow up with
@@ -1001,6 +1160,11 @@ examples:
 
     p_resume = sub.add_parser("resume", help="generate a tailored resume variant")
     p_resume.add_argument("--tags", default="default", help="comma-separated tags to include")
+    p_resume.add_argument(
+        "--format", choices=["md", "html"], default=None,
+        help="md (default), or html for a print-ready page you save as PDF. "
+             "Inferred from --out's extension when not given.",
+    )
     p_resume.add_argument("--summary", help="summary id to use")
     p_resume.add_argument("--max-bullets", type=int, help="cap bullets per job")
     p_resume.add_argument("--out", help="write to this path instead of stdout")

@@ -20,8 +20,11 @@ in this repo is about saving time; this is about the outcome.
 
 3. **Pick tags and generate:**
    ```
-   ./af resume --tags backend,performance --out resume/variants/<company>-<role>.md
+   ./af resume --tags backend,performance --out resume/variants/<company>.html
    ```
+   Use `.html` — that's the uploadable path (the user opens it and prints to
+   PDF). Use `.md` only when they want to edit the text by hand first.
+
    Check the output is one page (`af resume` warns past ~600 words). Trim with
    `--max-bullets 4` or a narrower tag set.
 

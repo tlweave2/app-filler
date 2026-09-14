@@ -23,14 +23,14 @@ match = [
   "why do you want this job",
 ]
 text = """
-{SPECIFIC_HOOK — one sentence naming something real about the company: a
+{SPECIFIC_HOOK — one sentence naming something real about {COMPANY}: a
 product you've used, a technical decision they wrote about, the problem the
 team owns. This is the only part that changes per application.}
 
-My background is in {YOUR_CORE_AREA}, and the part of this role that lines up
-most directly is {THE_MATCHING_RESPONSIBILITY}. At {PREVIOUS_COMPANY} I
-{SPECIFIC_ACHIEVEMENT_WITH_A_NUMBER}, which is the same kind of problem this
-team is working on.
+My background is in {YOUR_CORE_AREA}, and the part of the {ROLE} role that
+lines up most directly is {THE_MATCHING_RESPONSIBILITY}. At {PREVIOUS_COMPANY}
+I {SPECIFIC_ACHIEVEMENT_WITH_A_NUMBER}, which is the same kind of problem this
+team at {COMPANY} is working on.
 
 I'm looking for a role where I can {WHAT_YOU_ACTUALLY_WANT}, and this looks
 like that.
@@ -111,7 +111,7 @@ text = """
 {3-4 sentences maximum for a box like this. Structure:
 1. What you do and how long. ("Backend engineer, eight years, mostly payments.")
 2. The single most relevant thing you've done for THIS job.
-3. One sentence on why this company specifically.
+3. One sentence on why {COMPANY} specifically.
 
 Do not paste a full formal cover letter into a small text box.}
 """

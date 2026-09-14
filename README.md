@@ -92,9 +92,19 @@ sentence swapped in beats a stock answer, and beats a blank box by a mile.
 is a tag selection, not a rewrite:
 
 ```bash
-./af resume --tags backend,performance --out resume/variants/stripe.md
+./af resume --tags backend,performance --out resume/variants/stripe.html
 ./af resume --tags data --max-bullets 4 --out resume/variants/databricks.md
 ```
+
+**To get an uploadable PDF:** write a `.html` variant, open it in your browser,
+then Ctrl/Cmd + P → Save as PDF. The print stylesheet is Letter-sized with
+proper margins, and the yellow hint box doesn't appear in the PDF.
+
+The layout is deliberately plain — single column, real text, standard section
+headings, no tables or text boxes. Multi-column "designer" resumes are what ATS
+parsers mangle; the layout that survives parsing is the boring one.
+
+Format is inferred from the extension, or set it with `--format md|html`.
 
 Write more bullets in the base than fit on one page — that's the point. A
 bullet cut from one variant is the lead bullet of another. Each `[[summaries]]`
@@ -163,7 +173,7 @@ This is built to make *you* fast, with you in the loop.
 | `./af get <field>` | one value (`--copy` for clipboard) |
 | `./af fields` | list every field path |
 | `./af answer "<question>"` | reusable answer for a free-text box |
-| `./af resume --tags <tags>` | generate a tailored resume variant |
+| `./af resume --tags <tags>` | generate a tailored resume variant (`.md` or `.html` → PDF) |
 | `./af export` | JSON / env export for autofill tools |
 | `./af log add\|list\|status\|due\|stats` | application tracker |
 
