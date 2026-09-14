@@ -1,0 +1,153 @@
+# ============================================================================
+# ANSWER BANK — reusable answers to the free-text questions that eat time.
+#
+#   ./af answer "why are you interested in this role?"
+#
+# matches on meaning-ish (token overlap against `match` phrases) and prints
+# the answer. Add {COMPANY} / {ROLE} placeholders — `af answer` will fill them
+# in if you pass --company and --role, or leave them visible so you can't
+# forget to personalize.
+#
+# The rule that matters: a stock answer with one specific sentence swapped in
+# beats a stock answer. Keep the specific sentence marked with {...}.
+# ============================================================================
+
+[[answers]]
+id    = "why_interested"
+label = "Why are you interested in this role / company?"
+match = [
+  "why are you interested in this role",
+  "why do you want to work here",
+  "why this company",
+  "what interests you about this position",
+  "why do you want this job",
+]
+text = """
+{SPECIFIC_HOOK — one sentence naming something real about the company: a
+product you've used, a technical decision they wrote about, the problem the
+team owns. This is the only part that changes per application.}
+
+My background is in {YOUR_CORE_AREA}, and the part of this role that lines up
+most directly is {THE_MATCHING_RESPONSIBILITY}. At {PREVIOUS_COMPANY} I
+{SPECIFIC_ACHIEVEMENT_WITH_A_NUMBER}, which is the same kind of problem this
+team is working on.
+
+I'm looking for a role where I can {WHAT_YOU_ACTUALLY_WANT}, and this looks
+like that.
+"""
+
+[[answers]]
+id    = "why_leaving"
+label = "Why are you leaving your current role? / Reason for leaving"
+match = [
+  "why are you leaving",
+  "reason for leaving",
+  "why did you leave your last job",
+  "why are you looking for a new opportunity",
+]
+text = """
+{Keep this short, neutral, and forward-looking. Never criticize a former
+employer — it's the single most common way to lose a screen.
+
+If laid off: "My role was eliminated in a reduction in force in {MONTH YEAR}."
+That's it. It's common, it's not a mark against you, and a plain statement
+reads better than an explanation.
+
+If you left/are leaving by choice: "I'm looking for {SPECIFIC THING THIS ROLE
+HAS} that my current role doesn't offer."}
+"""
+
+[[answers]]
+id    = "greatest_strength"
+label = "What is your greatest strength?"
+match = ["greatest strength", "what are your strengths", "biggest strength"]
+text = """
+{ONE strength, named plainly, then a concrete example with a result. The
+example is what they remember — not the adjective.}
+"""
+
+[[answers]]
+id    = "weakness"
+label = "What is your greatest weakness?"
+match = ["greatest weakness", "what is your weakness", "area for improvement"]
+text = """
+{A real one, plus the specific thing you do about it. "I work too hard" reads
+as a dodge. "I used to under-communicate on long projects, so I now send a
+written status update every Friday" reads as self-aware.}
+"""
+
+[[answers]]
+id    = "salary_expectations"
+label = "Salary expectations"
+match = [
+  "salary expectation",
+  "desired salary",
+  "compensation expectation",
+  "what are your salary requirements",
+  "expected compensation",
+]
+text = """
+{If it's a free-text box and you can get away with it: "Negotiable — open to
+discussing the range for this role."
+
+If it forces a number, give your researched range, not a single figure. Pull
+the range from the posting itself where the state requires one, or from
+levels.fyi / Glassdoor for the title + metro.
+
+Your stored range: see logistics.desired_salary_range in profile.toml}
+"""
+
+[[answers]]
+id    = "cover_letter_short"
+label = "Short cover letter / 'anything else you'd like us to know'"
+match = [
+  "anything else you would like us to know",
+  "additional information",
+  "cover letter",
+  "tell us about yourself",
+  "why should we hire you",
+]
+text = """
+{3-4 sentences maximum for a box like this. Structure:
+1. What you do and how long. ("Backend engineer, eight years, mostly payments.")
+2. The single most relevant thing you've done for THIS job.
+3. One sentence on why this company specifically.
+
+Do not paste a full formal cover letter into a small text box.}
+"""
+
+[[answers]]
+id    = "employment_gap"
+label = "Explain any gaps in employment"
+match = [
+  "gap in employment",
+  "employment gap",
+  "explain any gaps",
+  "period of unemployment",
+]
+text = """
+{State it plainly and move on. "I was laid off in {MONTH YEAR} and have been
+searching since" is a complete and acceptable answer. A gap in 2024-2026 is
+unremarkable to anyone reading applications right now.
+
+If you did anything structured during it — coursework, certs, freelance,
+open source, caretaking — name it in one clause. Don't inflate it.}
+"""
+
+[[answers]]
+id    = "accommodation"
+label = "Do you require accommodation?"
+match = ["require accommodation", "reasonable accommodation", "need any accommodation"]
+text = """
+{Your call entirely, and you are not obligated to disclose anything at the
+application stage.}
+"""
+
+[[answers]]
+id    = "notice_period"
+label = "When can you start?"
+match = ["when can you start", "earliest start date", "availability to start", "notice period"]
+text = """
+{See logistics.earliest_start_date in profile.toml. If you're unemployed,
+"Immediately" or "Within one week" — no reason to pad it.}
+"""

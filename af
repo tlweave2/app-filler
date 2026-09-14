@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Thin launcher so you can run ./af from the repo root.
+exec python3 "$(dirname "$0")/tools/af.py" "$@"

@@ -1,0 +1,37 @@
+# ---------------------------------------------------------------------------
+# THIS REPO IS PUBLIC. Everything below contains personal data and must stay
+# out of git: your home address, phone, date of birth, salary history, and —
+# most importantly — your references' names, emails and phone numbers, which
+# are not yours to publish.
+#
+# The committed *.example.* files are blank templates. `./af init` copies them
+# into the real filenames below, which git ignores.
+#
+# If you later make this repo PRIVATE and want your profile synced across
+# machines, delete the lines in this block. Check the repo is actually private
+# first: https://github.com/tlweave2/app-filler/settings
+# ---------------------------------------------------------------------------
+profile/profile.toml
+profile/answers.toml
+resume/base.toml
+resume/cover-letter-base.md
+resume/variants/
+applications/log.csv
+build/
+
+# Generated exports — these are a flat dump of your whole profile.
+*.profile.json
+profile.json
+
+# ---------------------------------------------------------------------------
+# Job postings you save locally while tailoring. Usually harmless, but they
+# reveal where you're applying.
+# ---------------------------------------------------------------------------
+postings/
+
+# Editor / OS noise
+.DS_Store
+*.swp
+.venv/
+__pycache__/
+*.pyc

@@ -1,0 +1,178 @@
+# ============================================================================
+# MASTER PROFILE — the single source of truth for every job application.
+#
+# Fill this in ONCE. Everything else generates from it:
+#   ./af sheet              copy-paste cheat sheet for filling a form
+#   ./af get phone          one value, straight to your clipboard
+#   ./af export             flat JSON for autofill extensions / Claude in Chrome
+#   ./af doctor             tells you which fields are still blank
+#
+# Leave a field as "" if it doesn't apply to you. `./af doctor` lists every
+# blank field it considers commonly-required, so you can see what's left.
+# ============================================================================
+
+[personal]
+legal_first_name  = ""
+legal_middle_name = ""
+legal_last_name   = ""
+preferred_name    = ""          # what you go by, if different
+pronouns          = ""          # optional; many forms now ask
+email             = ""
+phone             = ""          # store one canonical format: 555-123-4567
+date_of_birth     = ""          # rarely required; some gov/contractor forms ask
+
+[personal.address]
+street  = ""
+street2 = ""
+city    = ""
+state   = ""                    # two-letter for US forms: CA
+zip     = ""
+country = "United States"
+
+[links]
+linkedin  = ""                  # full URL, https://www.linkedin.com/in/...
+github    = ""
+portfolio = ""
+website   = ""
+other     = ""
+
+# ---------------------------------------------------------------------------
+# WORK AUTHORIZATION — asked on essentially every US application.
+# Answer exactly as you would on the form.
+# ---------------------------------------------------------------------------
+[work_authorization]
+authorized_to_work_us        = ""   # "Yes" / "No"
+require_sponsorship_now      = ""   # "Yes" / "No"
+require_sponsorship_future   = ""   # "Yes" / "No"  <- asked separately, don't skip
+visa_status                  = ""   # e.g. "US Citizen", "Green Card", "H-1B"
+work_authorization_other     = ""
+
+# ---------------------------------------------------------------------------
+# LOGISTICS — salary, start date, location preferences.
+# ---------------------------------------------------------------------------
+[logistics]
+desired_salary        = ""      # what you type in the box: "95000" or "Negotiable"
+desired_salary_range  = ""      # for free-text: "$90,000 - $110,000"
+current_salary        = ""      # illegal to ask in many states; keep for the ones that do
+earliest_start_date   = ""      # "Two weeks from offer" / "Immediately"
+notice_period         = ""
+willing_to_relocate   = ""      # "Yes" / "No"
+relocation_notes      = ""
+remote_preference     = ""      # "Remote" / "Hybrid" / "On-site" / "Open"
+willing_to_travel     = ""      # "Up to 25%"
+desired_employment_type = ""    # "Full-time"
+
+# ---------------------------------------------------------------------------
+# SCREENING QUESTIONS — the yes/no checkboxes near the end of every form.
+# ---------------------------------------------------------------------------
+[screening]
+over_18                        = ""   # "Yes" / "No"
+can_perform_essential_functions = ""  # "Yes" / "No"
+consent_background_check       = ""
+consent_drug_test              = ""
+has_drivers_license            = ""
+convicted_of_felony            = ""
+felony_explanation             = ""
+previously_employed_here       = ""   # usually "No" — override per application
+relatives_employed_here        = ""
+non_compete_agreement          = ""
+how_did_you_hear               = ""   # "LinkedIn" / "Company website" — common default
+referral_name                  = ""
+
+# ---------------------------------------------------------------------------
+# EEO / DEMOGRAPHICS — voluntary. "Prefer not to answer" is always a valid
+# answer and never affects your application. Set these once so you stop
+# re-deciding on every form.
+# ---------------------------------------------------------------------------
+[eeo]
+gender          = ""            # or "Prefer not to answer"
+race_ethnicity  = ""            # or "Prefer not to answer"
+veteran_status  = ""            # or "I don't wish to answer"
+disability_status = ""          # or "I don't wish to answer"
+hispanic_latino = ""
+
+# ---------------------------------------------------------------------------
+# EDUCATION — most recent first. Add a [[education]] block per school.
+# ---------------------------------------------------------------------------
+[[education]]
+school       = ""
+degree       = ""               # "Bachelor of Science"
+field        = ""               # "Computer Science"
+location     = ""               # "Sacramento, CA"
+start_date   = ""               # YYYY-MM
+end_date     = ""               # YYYY-MM  (or expected graduation)
+gpa          = ""
+honors       = ""
+currently_enrolled = false
+
+# ---------------------------------------------------------------------------
+# EMPLOYMENT HISTORY — most recent first. Add a [[experience]] block per job.
+#
+# Workday and Taleo ask for supervisor name + phone + "may we contact".
+# Filling those in here is the difference between a 4-minute application
+# and a 20-minute one spent digging through old email.
+# ---------------------------------------------------------------------------
+[[experience]]
+company          = ""
+title            = ""
+location         = ""
+start_date       = ""           # YYYY-MM
+end_date         = ""           # YYYY-MM, or "" if current
+is_current       = false
+employment_type  = "Full-time"
+supervisor_name  = ""
+supervisor_title = ""
+supervisor_phone = ""
+supervisor_email = ""
+may_contact      = ""           # "Yes" / "No"
+starting_salary  = ""
+ending_salary    = ""
+reason_for_leaving = ""
+# Bullets live in resume/base.toml, tagged, so variants can be generated.
+# Keep a one-line summary here for forms with a "describe your duties" box:
+summary = ""
+
+# ---------------------------------------------------------------------------
+# REFERENCES — add a [[references]] block per person.
+# ---------------------------------------------------------------------------
+[[references]]
+name     = ""
+title    = ""
+company  = ""
+relation = ""                   # "Former manager"
+email    = ""
+phone    = ""
+years_known = ""
+
+# ---------------------------------------------------------------------------
+# CERTIFICATIONS / LICENSES
+# ---------------------------------------------------------------------------
+[[certifications]]
+name        = ""
+issuer      = ""
+issue_date  = ""                # YYYY-MM
+expiry_date = ""
+credential_id = ""
+
+# ---------------------------------------------------------------------------
+# SKILLS & LANGUAGES
+# ---------------------------------------------------------------------------
+[skills]
+# Free-form list. Used for the skills box and for resume tailoring.
+technical = []
+tools     = []
+soft      = []
+
+[[languages]]
+language    = ""
+proficiency = ""                # "Native" / "Professional" / "Conversational"
+
+# ---------------------------------------------------------------------------
+# DOCUMENTS — paths to the files you upload. Relative to repo root, or
+# absolute paths to wherever you actually keep them.
+# ---------------------------------------------------------------------------
+[documents]
+resume_default    = "resume/variants/resume-default.md"
+cover_letter_base = "resume/cover-letter-base.md"
+transcript        = ""
+portfolio_pdf     = ""
