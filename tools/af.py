@@ -617,7 +617,7 @@ RESUME_CSS = """
   * { box-sizing: border-box; }
   body {
     font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-    font-size: 10.5pt; line-height: 1.42; color: #16191d;
+    font-size: 10pt; line-height: 1.36; color: #16191d;
     max-width: 7.5in; margin: 0 auto; padding: 0.5in 0.55in;
     -webkit-print-color-adjust: exact;
   }
@@ -628,20 +628,20 @@ RESUME_CSS = """
   h2 {
     font-size: 9.5pt; text-transform: uppercase; letter-spacing: 1.1px;
     color: #16191d; border-bottom: 1.5px solid #16191d;
-    padding-bottom: 3px; margin: 16px 0 9px;
+    padding-bottom: 3px; margin: 13px 0 7px;
   }
-  .entry { margin-bottom: 11px; page-break-inside: avoid; }
+  .entry { margin-bottom: 9px; page-break-inside: avoid; }
   .entry-head {
     display: flex; justify-content: space-between;
     align-items: baseline; gap: 12px;
   }
-  .role { font-size: 10.5pt; font-weight: 700; }
+  .role { font-size: 10pt; font-weight: 700; }
   .meta { font-size: 9pt; color: #5b616a; white-space: nowrap; }
-  ul { margin: 5px 0 0; padding-left: 17px; }
-  li { margin-bottom: 3px; }
+  ul { margin: 4px 0 0; padding-left: 16px; }
+  li { margin-bottom: 2px; }
   .summary { margin-bottom: 2px; }
   .note { font-size: 9pt; color: #5b616a; margin-top: 1px; }
-  .skills-row { margin-bottom: 4px; }
+  .skills-row { margin-bottom: 3px; }
   .skills-row b { font-weight: 700; }
   a { color: inherit; text-decoration: none; }
   .print-hint {
