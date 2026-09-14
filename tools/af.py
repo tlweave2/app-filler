@@ -541,10 +541,9 @@ def select_resume(base: dict, args) -> dict:
         extras = [e for e in (edu.get("location", ""), edu.get("end", "")) if not is_blank(e)]
         if not is_blank(edu.get("gpa")):
             extras.append(f"GPA {edu['gpa']}")
-        if not is_blank(edu.get("honors")):
-            extras.append(str(edu["honors"]))
         edus.append({"school": edu["school"], "degree": edu.get("degree", ""),
-                     "field": edu.get("field", ""), "meta": extras})
+                     "field": edu.get("field", ""), "meta": extras,
+                     "honors": "" if is_blank(edu.get("honors")) else str(edu["honors"])})
 
     groups = [
         {"name": g.get("name", "Skills"), "items": g["items"]}
@@ -597,6 +596,8 @@ def render_markdown(r: dict) -> str:
             out.append(line)
             if edu["meta"]:
                 out.append(f"*{' · '.join(edu['meta'])}*")
+            if edu["honors"]:
+                out.append(edu["honors"])
             out.append("")
 
     if r["skills"]:
@@ -639,6 +640,7 @@ RESUME_CSS = """
   ul { margin: 5px 0 0; padding-left: 17px; }
   li { margin-bottom: 3px; }
   .summary { margin-bottom: 2px; }
+  .note { font-size: 9pt; color: #5b616a; margin-top: 1px; }
   .skills-row { margin-bottom: 4px; }
   .skills-row b { font-weight: 700; }
   a { color: inherit; text-decoration: none; }
@@ -652,6 +654,19 @@ RESUME_CSS = """
 
 def esc(text: str) -> str:
     return (str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+
+def head_row(title_html: str, meta_text: str) -> str:
+    """Title left, meta right — unless the meta is long enough to crowd the
+    title, in which case it goes on its own line underneath."""
+    if not meta_text:
+        return f'<div class="entry-head"><span class="role">{title_html}</span></div>'
+    if len(meta_text) > 45:
+        return (f'<div class="entry-head"><span class="role">{title_html}</span></div>'
+                f'<div class="note">{esc(meta_text)}</div>')
+    return ('<div class="entry-head">'
+            f'<span class="role">{title_html}</span>'
+            f'<span class="meta">{esc(meta_text)}</span></div>')
 
 
 def render_html(r: dict) -> str:
@@ -678,9 +693,7 @@ def render_html(r: dict) -> str:
         parts.append("<h2>Experience</h2>")
         for job in r["jobs"]:
             role = " — ".join(x for x in (esc(job["title"]), esc(job["company"])) if x)
-            parts.append('<div class="entry"><div class="entry-head">'
-                         f'<span class="role">{role}</span>'
-                         f'<span class="meta">{esc(" · ".join(job["meta"]))}</span></div>')
+            parts.append('<div class="entry">' + head_row(role, " · ".join(job["meta"])))
             if job["bullets"]:
                 items = "".join(f"<li>{esc(b)}</li>" for b in job["bullets"])
                 parts.append(f"<ul>{items}</ul>")
@@ -689,9 +702,7 @@ def render_html(r: dict) -> str:
     if r["projects"]:
         parts.append("<h2>Projects</h2>")
         for proj in r["projects"]:
-            parts.append('<div class="entry"><div class="entry-head">'
-                         f'<span class="role">{esc(proj["name"])}</span>'
-                         f'<span class="meta">{esc(proj["link"])}</span></div>')
+            parts.append('<div class="entry">' + head_row(esc(proj["name"]), proj["link"]))
             if proj["description"]:
                 parts.append(f'<div class="summary">{esc(proj["description"])}</div>')
             if proj["bullets"]:
@@ -703,11 +714,12 @@ def render_html(r: dict) -> str:
         parts.append("<h2>Education</h2>")
         for edu in r["education"]:
             degree = edu["degree"] + (f", {edu['field']}" if edu["field"] else "")
-            parts.append('<div class="entry"><div class="entry-head">'
-                         f'<span class="role">{esc(edu["school"])}</span>'
-                         f'<span class="meta">{esc(" · ".join(edu["meta"]))}</span></div>')
+            parts.append('<div class="entry">'
+                         + head_row(esc(edu["school"]), " · ".join(edu["meta"])))
             if degree.strip(", "):
                 parts.append(f'<div class="summary">{esc(degree)}</div>')
+            if edu["honors"]:
+                parts.append(f'<div class="note">{esc(edu["honors"])}</div>')
             parts.append("</div>")
 
     if r["skills"]:
