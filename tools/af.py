@@ -474,6 +474,21 @@ def wants(item_tags, selected: set[str]) -> bool:
     return bool(tags & selected)
 
 
+MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+
+def pretty_date(value: str) -> str:
+    """YYYY-MM -> 'Dec 2024'. Anything else passes through unchanged."""
+    match = re.fullmatch(r"(\d{4})-(\d{2})", str(value).strip())
+    if not match:
+        return str(value)
+    year, month = match.group(1), int(match.group(2))
+    if not 1 <= month <= 12:
+        return str(value)
+    return f"{MONTHS[month - 1]} {year}"
+
+
 def select_resume(base: dict, args) -> dict:
     """Pick the content for one variant. Rendering is a separate step."""
     selected = {t.strip().lower() for t in args.tags.split(",") if t.strip()}
@@ -517,9 +532,9 @@ def select_resume(base: dict, args) -> dict:
         ]
         if args.max_bullets:
             bullets = bullets[: args.max_bullets]
-        meta = [m for m in (job.get("location", ""),
-                            f"{job.get('start', '')} – {job.get('end') or 'Present'}")
-                if not is_blank(m)]
+        span = f"{pretty_date(job.get('start', ''))} – " \
+               f"{pretty_date(job['end']) if not is_blank(job.get('end')) else 'Present'}"
+        meta = [m for m in (job.get("location", ""), span) if not is_blank(m)]
         jobs.append({"title": job.get("title", ""), "company": job.get("company", ""),
                      "meta": meta, "bullets": bullets})
 
@@ -538,7 +553,8 @@ def select_resume(base: dict, args) -> dict:
     for edu in base.get("education", []):
         if is_blank(edu.get("school")) or not wants(edu.get("tags"), selected):
             continue
-        extras = [e for e in (edu.get("location", ""), edu.get("end", "")) if not is_blank(e)]
+        extras = [e for e in (edu.get("location", ""), pretty_date(edu.get("end", "")))
+                  if not is_blank(e)]
         if not is_blank(edu.get("gpa")):
             extras.append(f"GPA {edu['gpa']}")
         edus.append({"school": edu["school"], "degree": edu.get("degree", ""),
