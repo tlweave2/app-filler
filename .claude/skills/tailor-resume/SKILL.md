@@ -52,6 +52,11 @@ in this repo is about saving time; this is about the outcome.
 - **Never invent experience, metrics, or skills.** Reframing what's in
   `base.toml` is the job; adding what isn't there is lying on a job
   application, and it surfaces in the interview.
+- **Don't push the user to add metrics they don't have.** Generic "quantify
+  your impact" advice is calibrated for mid-level ICs with business context.
+  For entry-level candidates and solo projects there is often no honest
+  number, and a small or estimated one reads worse than none. Prefer the
+  problem removed, the constraint handled, or the reason for the design.
 - If the user isn't a plausible fit, say so plainly and say what's missing.
   Applying anyway is their call — but they should know before spending the time.
 - Don't pad to fill a page. A short resume that matches beats a long one.

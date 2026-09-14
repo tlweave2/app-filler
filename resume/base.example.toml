@@ -10,9 +10,19 @@
 # library, the variant is the page. A bullet that's cut from one variant is
 # the lead bullet of another.
 #
-# Bullet formula that actually survives a recruiter skim:
-#   <action verb> <what> <that produced this measurable result>
-# If a bullet has no number in it, ask whether it's worth its line.
+# Bullet shape that survives a recruiter skim:
+#   <action verb> <what you built> <what changed because of it>
+#
+# "What changed" does NOT have to be a number. A metric is the strongest
+# version when you genuinely measured it. When you didn't, the honest
+# substitutes are just as good: the problem it removed ("replacing manual
+# data entry"), the constraint it handles ("without connectivity"), or the
+# reason the design is what it is ("cost-based routing").
+#
+# Never estimate a number to fill the slot. An invented metric is the one
+# thing on a resume that reliably falls apart in an interview, and personal
+# projects rarely have business metrics worth citing — a small real number
+# reads worse than no number at all.
 # ============================================================================
 
 [header]
